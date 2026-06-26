@@ -1,0 +1,50 @@
+# Root container ignores the split repositories' contents.
+/code/
+/ideas/
+/experiments/
+
+# Optional root-level local workspaces.
+/assets/
+/paper/
+/external/
+/tmp/
+
+# Local environments and caches.
+.venv/
+venv/
+env/
+.env/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# LaTeX build artifacts.
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+*.xdv
+
+# Local agent/editor state.
+.agents/
+.codex
+.codex/
+.vscode/
+
+# Local installer artifacts and OS noise.
+*.deb
+*.zip
+*.tar
+*.tgz
+*.tar.gz
+*.7z
+.DS_Store
+Thumbs.db
