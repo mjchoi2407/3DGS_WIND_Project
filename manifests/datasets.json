@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "captured_at": "2026-08-13T02:30:00+09:00",
+  "storage_policy": "Large public data, checkpoints and derived models stay outside Git. Version control stores provenance, hashes when practical, retrieval rules and experiment reports.",
+  "datasets": [
+    {
+      "id": "synthetic_leaf_3dgs",
+      "path": "experiments/M01_static_3dgs_io/assets/synthetic_leaf_3dgs.ply",
+      "provenance": "project-generated synthetic Inria-style 3DGS fixture",
+      "role": "TD01 CanonicalGaussianAsset and renderer regression candidate",
+      "git_tracked": true,
+      "validation": "legacy checks exist; TD01 contract revalidation pending"
+    },
+    {
+      "id": "synthetic_cloth_grids",
+      "path": "experiments/M02_mesh_proxy_binding/assets/cloth_*",
+      "provenance": "project-generated 10x10, 30x30 and 50x50 triangulated cloth fixtures",
+      "role": "E0 geometry/transport fixture and legacy mesh-proxy comparison",
+      "git_tracked": true,
+      "validation": "legacy numerical binding report exists; affine MLS and TD contract revalidation pending"
+    },
+    {
+      "id": "official_3dgs_tandt_db",
+      "source": "https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/datasets/input/tandt_db.zip",
+      "archive_path": "experiments/M04_mesh_extraction/downloads/tandt_db.zip",
+      "archive_size_bytes": 682628995,
+      "archive_sha256": "816e62f22a161abbfe841d2a6b10cdf036e297c9fa289b3bfeee9c6ec526d7e1",
+      "extracted_paths": [
+        "experiments/M04_mesh_extraction/raw/tandt/train",
+        "experiments/M04_mesh_extraction/raw/tandt/truck",
+        "experiments/M04_mesh_extraction/raw/db/drjohnson",
+        "experiments/M04_mesh_extraction/raw/db/playroom"
+      ],
+      "role": "offline reconstruction/extractor adapter smoke; not a deformable target benchmark",
+      "git_tracked": false
+    },
+    {
+      "id": "co3d_selected_categories",
+      "local_root": "experiments/M04_mesh_extraction/raw/co3d",
+      "categories": [
+        "broccoli",
+        "frisbee",
+        "kite",
+        "plant",
+        "teddybear",
+        "toyplane",
+        "umbrella"
+      ],
+      "source_record": "A user-provided link manifest was used during M04 download; original per-file retrieval URLs and checksums need a new version-controlled manifest.",
+      "role": "object-centric asset candidates; kite is a thin-surface priority candidate",
+      "git_tracked": false,
+      "validation": "category extraction recorded; per-sequence completeness and checksums pending"
+    },
+    {
+      "id": "mipnerf360_selected_scenes",
+      "local_root": "experiments/M04_mesh_extraction/raw/mipnerf360",
+      "scenes": [
+        "bonsai",
+        "flowers",
+        "garden",
+        "stump",
+        "treehill"
+      ],
+      "source_record": "Historical M04 notes reference local archives /mnt/h/360_v2.zip and /mnt/h/360_extra_scenes.zip; portable source URLs and archive hashes are pending.",
+      "role": "static reconstruction and mesh extraction stress tests; not the primary deformable dataset",
+      "git_tracked": false,
+      "validation": "scene extraction and several GOF runs recorded; source checksum manifest pending"
+    },
+    {
+      "id": "gof_m04_derived_models",
+      "local_root": "experiments/M04_mesh_extraction/models",
+      "directory_count_at_capture": 21,
+      "producer": {
+        "dependency_id": "gaussian_opacity_fields",
+        "base_commit": "5245b20e5d11acd6d1ff5af4b890dc2bedd99693",
+        "patch_sha256": "ba0142b35d1dc787e9846ac4b7c04d1d266529dd93492e3e4dc04cf957fb1b64"
+      },
+      "role": "offline GS and extracted-mesh evidence; selected final PLY/mesh may become teacher or baseline inputs",
+      "git_tracked": false,
+      "validation": "run-specific manifests and final-vs-intermediate retention decisions pending"
+    }
+  ],
+  "do_not_delete_before": [
+    "CO3D kite candidate data",
+    "final static GS PLY used for any TD dataset",
+    "selected extracted meshes used as oracle/debug/baseline",
+    "M04 scripts and reports already committed to the experiments repository",
+    "any checkpoint whose final PLY or run manifest has not been verified"
+  ]
+}

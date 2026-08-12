@@ -19,6 +19,14 @@ Each folder is its own Git repository and has its own `AGENTS.md`.
 
 `ideas/README.md` is the stable entry point for the current method. It indexes the active idea sketch, implementation checklist, bibliography, generated PDFs, and the archive boundary for prior directions.
 
+## Reproducibility Records
+
+- `manifests/`: split-repository recovery points, external dependency pins, environment observations, dataset inventory, and artifact ownership policy
+- `patches/external/`: exact local diffs required to reproduce modified external tools
+- `paper/`: version-controlled manuscript sources; generated PDFs remain local unless explicitly selected as a deliverable
+
+The root repository does not vendor `external/` or the three split repositories. Reconstruct them from the recorded remotes and commits, then apply only the patches listed in `manifests/external_dependencies.json`.
+
 ## Git Remotes
 
 - root: `git@github.com:mjchoi2407/3DGS_WIND_Project.git`

@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "captured_at": "2026-08-13T02:30:00+09:00",
+  "project": "Wind3DGS",
+  "recovery_tag": "pre-td00-repo-reset-2026-08-13",
+  "repositories": [
+    {
+      "id": "project",
+      "path": ".",
+      "role": "project-container governance, cross-repository manifests and manuscript sources",
+      "origin": "git@github.com:mjchoi2407/3DGS_WIND_Project.git",
+      "recovery_commit": "08c81cedb08edaaf64ed92dc6cfb4a03c89438c9",
+      "transition_commits": [
+        "3f79f209f8ba060acdb182d9b36a2ca02b7b2035"
+      ]
+    },
+    {
+      "id": "code",
+      "path": "code",
+      "role": "reusable implementation, configs, schemas and tests",
+      "origin": "git@github.com:mjchoi2407/3DGS_WIND_Code.git",
+      "recovery_commit": "42df21f2bd6a9a361d140d6eda572144765fc372",
+      "transition_commits": [
+        "555a3b9",
+        "dd5726b"
+      ]
+    },
+    {
+      "id": "ideas",
+      "path": "ideas",
+      "role": "canonical research index, current method documents and archived prior directions",
+      "origin": "git@github.com:mjchoi2407/3DGS_WIND_Ideas.git",
+      "recovery_commit": "5bc3ead671c0a935ef1b263ec38100ebeeea83a7",
+      "transition_commits": [
+        "2e569b2"
+      ]
+    },
+    {
+      "id": "experiments",
+      "path": "experiments",
+      "role": "experiment records, small fixtures, reports and thin wrappers",
+      "origin": "git@github.com:mjchoi2407/3DGS_WIND_Experiments.git",
+      "recovery_commit": "2197ce09f29e69d72cb6bd3fe9847aab25e5d303",
+      "transition_commits": [
+        "8fb9b07",
+        "569b651"
+      ]
+    }
+  ],
+  "notes": [
+    "Each path is an independent Git repository; the root repository intentionally does not use gitlinks for the split repositories.",
+    "The recovery tag is local until explicitly pushed by the user.",
+    "transition_commits are informational abbreviated IDs created after the recovery point and must not replace recovery_commit as the rollback anchor."
+  ]
+}

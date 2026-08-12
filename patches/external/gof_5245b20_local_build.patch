@@ -1,0 +1,86 @@
+diff --git a/submodules/diff-gaussian-rasterization/diff_gaussian_rasterization.egg-info/PKG-INFO b/submodules/diff-gaussian-rasterization/diff_gaussian_rasterization.egg-info/PKG-INFO
+index dc4fd79..b471f51 100644
+--- a/submodules/diff-gaussian-rasterization/diff_gaussian_rasterization.egg-info/PKG-INFO
++++ b/submodules/diff-gaussian-rasterization/diff_gaussian_rasterization.egg-info/PKG-INFO
+@@ -1,4 +1,4 @@
+ Metadata-Version: 2.1
+-Name: diff-gaussian-rasterization
++Name: diff_gaussian_rasterization
+ Version: 0.0.0
+ License-File: LICENSE.md
+diff --git a/submodules/tetra-triangulation/CMakeLists.txt b/submodules/tetra-triangulation/CMakeLists.txt
+index 17b239c..234737c 100644
+--- a/submodules/tetra-triangulation/CMakeLists.txt
++++ b/submodules/tetra-triangulation/CMakeLists.txt
+@@ -1,6 +1,7 @@
+ cmake_minimum_required(VERSION 3.16.3)
+-project(fast_traversal LANGUAGES CXX CUDA)
+-enable_language(CUDA)
++project(fast_traversal LANGUAGES CXX)
++set(CMAKE_CXX_STANDARD 17)
++set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ 
+ include(FetchContent)
+ # Add paths to our CMake code to the module path, so they can be found automatically by
+@@ -14,19 +15,7 @@ include_directories(${CONDA_PREFIX}/include)
+ # TODO: fix this
+ find_package(Torch REQUIRED)
+ find_package(CGAL REQUIRED)
+-# find_package(pybind11 REQUIRED)
+-
+-include(FetchContent)
+-FetchContent_Declare(
+-    pybind11
+-    GIT_REPOSITORY https://github.com/pybind/pybind11
+-    GIT_TAG        v2.9.2
+-)
+-FetchContent_GetProperties(pybind11)
+-if(NOT pybind11_POPULATED)
+-    FetchContent_Populate(pybind11)
+-    add_subdirectory(${pybind11_SOURCE_DIR} ${pybind11_BINARY_DIR})
+-endif()
++find_package(pybind11 REQUIRED)
+ 
+ 
+ # Put all the runtime stuff in the same directory.  By default, CMake puts each targets'
+@@ -61,7 +50,6 @@ pybind11_add_module(tetranerf_cpp_extension
+ 
+ target_link_libraries(tetranerf_cpp_extension PRIVATE ${CUDA_LIBRARIES} ${TORCH_LIBRARIES})
+ target_link_libraries(tetranerf_cpp_extension PRIVATE CGAL::CGAL)
+-target_compile_features(tetranerf_cpp_extension PRIVATE cxx_std_17)
+ set_target_properties(tetranerf_cpp_extension
+     PROPERTIES
+     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+diff --git a/submodules/tetra-triangulation/cmake/FindTorch.cmake b/submodules/tetra-triangulation/cmake/FindTorch.cmake
+index db55741..59ed0d4 100644
+--- a/submodules/tetra-triangulation/cmake/FindTorch.cmake
++++ b/submodules/tetra-triangulation/cmake/FindTorch.cmake
+@@ -9,17 +9,17 @@ if(NOT DEFINED PYTHON_EXECUTABLE)
+   message(STATUS "Found torch ${TORCH_VERSION}")
+ endif()
+ if(NOT DEFINED CUDA_TOOLKIT_ROOT_DIR)
+-  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import torch.utils.cpp_extension; print(f'{torch.utils.cpp_extension.CUDA_HOME}',end='')" RESULT_VARIABLE STATUS OUTPUT_VARIABLE CUDA_TOOLKIT_ROOT_DIR)
++  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import contextlib, io; buf=io.StringIO(); ctx=contextlib.redirect_stdout(buf); ctx.__enter__(); import torch.utils.cpp_extension as ce; ctx.__exit__(None,None,None); print(f'{ce.CUDA_HOME}',end='')" RESULT_VARIABLE STATUS OUTPUT_VARIABLE CUDA_TOOLKIT_ROOT_DIR)
+ endif()
+ if(NOT DEFINED TORCH_LIBRARY_DIRS)
+-  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import torch.utils.cpp_extension; print(';'.join(torch.utils.cpp_extension.library_paths(False)),end='')" COMMAND_ERROR_IS_FATAL ANY OUTPUT_VARIABLE TORCH_LIBRARY_DIRS)
++  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import contextlib, io; buf=io.StringIO(); ctx=contextlib.redirect_stdout(buf); ctx.__enter__(); import torch.utils.cpp_extension as ce; ctx.__exit__(None,None,None); print(';'.join(ce.library_paths(False)),end='')" COMMAND_ERROR_IS_FATAL ANY OUTPUT_VARIABLE TORCH_LIBRARY_DIRS)
+ endif()
+ if(NOT DEFINED TORCH_INCLUDE_DIRS)
+-  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import torch.utils.cpp_extension; print(';'.join(torch.utils.cpp_extension.include_paths(False)),end='')" COMMAND_ERROR_IS_FATAL ANY OUTPUT_VARIABLE TORCH_INCLUDE_DIRS)
++  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import contextlib, io; buf=io.StringIO(); ctx=contextlib.redirect_stdout(buf); ctx.__enter__(); import torch.utils.cpp_extension as ce; ctx.__exit__(None,None,None); print(';'.join(ce.include_paths(False)),end='')" COMMAND_ERROR_IS_FATAL ANY OUTPUT_VARIABLE TORCH_INCLUDE_DIRS)
+ endif()
+ 
+ if("$ENV{CUDAARCHS}" STREQUAL "")
+-  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import torch.utils.cpp_extension;print(' '.join(sorted(set(x.split('_')[-1] for x in torch.utils.cpp_extension._get_cuda_arch_flags()))),end='')" COMMAND_ERROR_IS_FATAL ANY OUTPUT_VARIABLE CMAKE_CUDA_ARCHITECTURES)
++  execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "import contextlib, io; buf=io.StringIO(); ctx=contextlib.redirect_stdout(buf); ctx.__enter__(); import torch.utils.cpp_extension as ce; ctx.__exit__(None,None,None); print(' '.join(sorted(set(x.split('_')[-1] for x in ce._get_cuda_arch_flags()))),end='')" COMMAND_ERROR_IS_FATAL ANY OUTPUT_VARIABLE CMAKE_CUDA_ARCHITECTURES)
+ endif()
+ 
+ # Setup everything
+@@ -31,4 +31,4 @@ include_directories(${TORCH_INCLUDE_DIRS})
+ link_directories(${TORCH_LIBRARY_DIRS})
+ set(TORCH_LIBRARIES c10 torch torch_cpu torch_python)
+ string(APPEND CMAKE_CUDA_FLAGS " -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ --expt-relaxed-constexpr --compiler-options '-fPIC' -O3 --use_fast_math")
+-string(APPEND CMAKE_CXX_FLAGS " -Wno-deprecated-declarations -D_GLIBCXX_USE_CXX11_ABI=0")
+\ No newline at end of file
++string(APPEND CMAKE_CXX_FLAGS " -Wno-deprecated-declarations -D_GLIBCXX_USE_CXX11_ABI=0")

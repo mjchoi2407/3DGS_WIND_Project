@@ -5,7 +5,15 @@
 
 # Optional root-level local workspaces.
 /assets/
-/paper/
+/paper/*
+!/paper/main.tex
+!/paper/refs.bib
+!/paper/figures/
+/paper/figures/*
+!/paper/figures/.gitkeep
+!/paper/sections/
+/paper/sections/*
+!/paper/sections/.gitkeep
 /external/
 /tmp/
 

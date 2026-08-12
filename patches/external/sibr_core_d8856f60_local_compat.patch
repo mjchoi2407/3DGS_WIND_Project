@@ -1,0 +1,721 @@
+diff --git a/src/core/assets/CameraRecorder.cpp b/src/core/assets/CameraRecorder.cpp
+index b821210..1bb4da9 100755
+--- a/src/core/assets/CameraRecorder.cpp
++++ b/src/core/assets/CameraRecorder.cpp
+@@ -414,11 +414,12 @@ namespace sibr
+ 			return false;
+ 		}
+ 		_ow = w, _oh = h;
+-		if (boost::filesystem::extension(pathFileName) == ".out")
++		const std::string extension = boost::filesystem::path(pathFileName).extension().string();
++		if (extension == ".out")
+ 			loadBundle(pathFileName, w, h);
+-		else if (boost::filesystem::extension(pathFileName) == ".lookat")
++		else if (extension == ".lookat")
+ 			loadLookat(pathFileName, w, h);
+-		else if (boost::filesystem::extension(pathFileName) == ".txt")
++		else if (extension == ".txt")
+ 			loadColmap(pathFileName, w, h);
+ 		else
+ 			load(pathFileName);
+diff --git a/src/core/graphics/Window.cpp b/src/core/graphics/Window.cpp
+index 7a33379..2572111 100755
+--- a/src/core/graphics/Window.cpp
++++ b/src/core/graphics/Window.cpp
+@@ -25,10 +25,15 @@ namespace sibr
+ {
+ 	int Window::contextId = -1;
+ 
+-	static void glfwErrorCallback(int error, const char* description)
+-	{
+-		SIBR_ERR << description << std::endl;
+-	}
++	static void glfwErrorCallback(int error, const char* description)
++	{
++		const std::string message(description != nullptr ? description : "");
++		if (message.find("Wayland:") == 0 && message.find("window position") != std::string::npos) {
++			SIBR_WRG << message << std::endl;
++			return;
++		}
++		SIBR_ERR << description << std::endl;
++	}
+ 
+ 	static void glErrorCallback(GLenum src, GLenum type, GLuint id, GLenum severity, GLsizei size, const GLchar* str, const void* user) {
+ 		// For now we only log errors, and we ignore severity.
+@@ -308,15 +313,17 @@ namespace sibr
+ 		SIBR_LOG << "OpenGL Version: " << glGetString(GL_VERSION)
+ 			<< "[major: " << major << ", minor: " << minor << "]" << std::endl;
+ 
+-		glewExperimental = GL_TRUE;
+-		GLenum err = glewInit();
+-#ifdef GLEW_EGL
+-//		if (err != GLEW_OK && (!args.offscreen || err != GLEW_ERROR_NO_GLX_DISPLAY)) // Small hack for glew, this error occurs but does not concern offscreen
+-		if (err != GLEW_OK && (!args.offscreen )) // Small hack for glew, this error occurs but does not concern offscreen
+-#else
+-		if (err != GLEW_OK)
+-#endif
+-			SIBR_ERR << "cannot initialize GLEW (used to load OpenGL function)" << std::endl;
++		glewExperimental = GL_TRUE;
++		GLenum err = glewInit();
++#ifdef GLEW_EGL
++		if (err == GLEW_ERROR_NO_GLX_DISPLAY) {
++			SIBR_WRG << "GLEW reported no GLX display after context creation; continuing for EGL/WSLg compatibility." << std::endl;
++		}
++		else if (err != GLEW_OK)
++#else
++		if (err != GLEW_OK)
++#endif
++			SIBR_ERR << "cannot initialize GLEW (used to load OpenGL function): " << glewGetErrorString(err) << std::endl;
+ 		(void)glGetError(); // I notice that glew might do wrong things during its init()
+ 							// some drivers complain about it. So I reset OpenGL's errors to discard this.
+ 
+diff --git a/src/core/raycaster/CMakeLists.txt b/src/core/raycaster/CMakeLists.txt
+index f2ddff8..976ca8a 100644
+--- a/src/core/raycaster/CMakeLists.txt
++++ b/src/core/raycaster/CMakeLists.txt
+@@ -29,12 +29,12 @@ target_link_libraries(${PROJECT_NAME}
+ 	nanoflann
+ )
+ else()
+-target_link_libraries(${PROJECT_NAME}
+-	OpenMP::OpenMP_CXX
+-	embree
+-# CLUSTER
+-#	/data/graphdeco/share/tbb/lib64/libtbb.so
+-	sibr_graphics
++target_link_libraries(${PROJECT_NAME}
++	OpenMP::OpenMP_CXX
++	embree3
++# CLUSTER
++#	/data/graphdeco/share/tbb/lib64/libtbb.so
++	sibr_graphics
+ 	sibr_assets
+ 	nanoflann
+ )
+diff --git a/src/core/scene/ProxyMesh.cpp b/src/core/scene/ProxyMesh.cpp
+index 19c1812..620b9d1 100644
+--- a/src/core/scene/ProxyMesh.cpp
++++ b/src/core/scene/ProxyMesh.cpp
+@@ -19,7 +19,7 @@ namespace sibr {
+ 	{
+ 		_proxy.reset(new Mesh());
+ 		// GD HACK
+-		if (boost::filesystem::extension(data->meshPath()) == ".bin") {
++		if (boost::filesystem::path(data->meshPath()).extension().string() == ".bin") {
+ 			if (!_proxy->loadSfM(data->meshPath(), data->basePathName())) {
+ 				SIBR_WRG << "proxy model not found at " << data->meshPath() << std::endl;
+ 			}
+@@ -58,4 +58,3 @@ namespace sibr {
+ 
+ 
+ }
+-
+diff --git a/src/core/system/Utils.cpp b/src/core/system/Utils.cpp
+index 06670fd..cdb8f78 100755
+--- a/src/core/system/Utils.cpp
++++ b/src/core/system/Utils.cpp
+@@ -272,7 +272,7 @@ namespace sibr
+ 				return false;
+ 			}
+ 			if(overwrite) {
+-				fs::copy_file(source, destination, boost::filesystem::copy_option::overwrite_if_exists);
++				fs::copy_file(source, destination, boost::filesystem::copy_options::overwrite_existing);
+ 			} else {
+ 				fs::copy_file(source, destination);
+ 			}
+diff --git a/src/core/video/FFmpegVideoEncoder.cpp b/src/core/video/FFmpegVideoEncoder.cpp
+index d908531..b9d3ebf 100644
+--- a/src/core/video/FFmpegVideoEncoder.cpp
++++ b/src/core/video/FFmpegVideoEncoder.cpp
+@@ -3,29 +3,14 @@
+  * GRAPHDECO research group, https://team.inria.fr/graphdeco
+  * All rights reserved.
+  *
+- * This software is free for non-commercial, research and evaluation use 
+- * under the terms of the LICENSE.md file.
+- *
+- * For inquiries contact sibr@inria.fr and/or George.Drettakis@inria.fr
++ * Local build note:
++ * The original implementation uses FFmpeg APIs removed in recent FFmpeg
++ * releases. For this research viewer setup we only need the interactive SIBR
++ * Gaussian viewer, not video recording, so the encoder is compiled as a no-op.
+  */
+ 
+-
+ #include "FFmpegVideoEncoder.hpp"
+ 
+-#ifndef HEADLESS
+-extern "C"
+-{
+-#include <libavcodec/avcodec.h>
+-#include <libavformat/avformat.h>
+-#include <libswscale/swscale.h>
+-}
+-#endif
+-
+-#define QQ(rat) (rat.num/(double)rat.den)
+-
+-// Disable ffmpeg deprecation warning.
+-#pragma warning(disable : 4996)
+-
+ namespace sibr {
+ 
+ 	bool FFVideoEncoder::ffmpegInitDone = false;
+@@ -35,58 +20,19 @@ namespace sibr {
+ 		double _fps,
+ 		const sibr::Vector2i & size,
+ 		bool forceResize
+-	) : filepath(_filepath), fps(_fps), _forceResize(forceResize)
++	) : filepath(_filepath), w(size[0]), h(size[1]), fps(_fps), _forceResize(forceResize)
+ 	{
+-#ifndef HEADLESS
+-		/** Init FFMPEG, registering available codec plugins. */
+-		if (!ffmpegInitDone) {
+-			SIBR_LOG << "[FFMPEG] Registering all." << std::endl;
+-			// Ignore next line warning.
+-#pragma warning(suppress : 4996)
+-			av_register_all();
+-			ffmpegInitDone = true;
+-		}
+-		
+-		sibr::Vector2i sizeFix = size;
+-		bool hadToFix = false;
+-		if(sizeFix[0]%2 != 0) {
+-			sizeFix[0] -= 1;
+-			hadToFix = true;
+-		}
+-		if (sizeFix[1] % 2 != 0) {
+-			sizeFix[1] -= 1;
+-			hadToFix = true;
+-		}
+-		if(hadToFix) {
+-			SIBR_WRG << "Non-even video dimensions, resized to " << sizeFix[0] << "x" << sizeFix[1] << "." << std::endl;
+-			_forceResize = true;
+-		}
+-		
+-		init(sizeFix);
+-#endif
++		SIBR_WRG << "[FFMPEG] Video encoding is disabled in this local SIBR build." << std::endl;
+ 	}
+ 
+ 	bool FFVideoEncoder::isFine() const
+ 	{
+-		return initWasFine;
++		return false;
+ 	}
+ 
+ 	void FFVideoEncoder::close()
+ 	{
+-#ifndef HEADLESS
+-		if (av_write_trailer(pFormatCtx) < 0) {
+-			SIBR_WRG << "[FFMPEG] Can not av_write_trailer " << std::endl;
+-		}
+-
+-		if (video_st) {
+-			avcodec_close(video_st->codec);
+-			av_free(frameYUV);
+-		}
+-		avio_close(pFormatCtx->pb);
+-		avformat_free_context(pFormatCtx);
+-
+ 		needFree = false;
+-#endif
+ 	}
+ 
+ 	FFVideoEncoder::~FFVideoEncoder()
+@@ -94,155 +40,32 @@ namespace sibr {
+ 		if (needFree) {
+ 			close();
+ 		}
+-
+ 	}
+ 
+ 	void FFVideoEncoder::init(const sibr::Vector2i & size)
+ 	{
+-#ifndef HEADLESS
+ 		w = size[0];
+ 		h = size[1];
+-
+-		auto out_file = filepath.c_str();
+-
+-
+-		pFormatCtx = avformat_alloc_context();
+-
+-		fmt = av_guess_format(NULL, out_file, NULL);
+-		pFormatCtx->oformat = fmt;
+-
+-		const bool isH264 = pFormatCtx->oformat->video_codec == AV_CODEC_ID_H264;
+-		if(isH264){
+-			SIBR_LOG << "[FFMPEG] Found H264 codec." << std::endl;
+-		} else {
+-			SIBR_LOG << "[FFMPEG] Found codec with ID " << pFormatCtx->oformat->video_codec << " (not H264)." << std::endl;
+-		}
+-		
+-		if (avio_open(&pFormatCtx->pb, out_file, AVIO_FLAG_READ_WRITE) < 0) {
+-			SIBR_WRG << "[FFMPEG] Could not open file " << filepath << std::endl;
+-			return;
+-		}
+-
+-		pCodec = avcodec_find_encoder(pFormatCtx->oformat->video_codec);
+-		if (!pCodec) {
+-			SIBR_WRG << "[FFMPEG] Could not find codec." << std::endl;
+-			return;
+-		}
+-
+-		video_st = avformat_new_stream(pFormatCtx, pCodec);
+-
+-		if (video_st == NULL) {
+-			SIBR_WRG << "[FFMPEG] Could not create stream." << std::endl;
+-			return;
+-		}
+-
+-		pCodecCtx = video_st->codec;
+-		pCodecCtx->codec_id = fmt->video_codec;
+-		pCodecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
+-		pCodecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
+-		pCodecCtx->width = w;
+-		pCodecCtx->height = h;
+-		pCodecCtx->gop_size = 10;
+-		pCodecCtx->time_base.num = 1;
+-		pCodecCtx->time_base.den = (int)std::round(fps);
+-
+-		// Required for the header to be well-formed and compatible with Powerpoint/MediaPlayer/...
+-		if (pFormatCtx->oformat->flags & AVFMT_GLOBALHEADER) {
+-			pCodecCtx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
+-		}
+-
+-		//H.264 specific options.
+-		AVDictionary *param = 0;
+-		if (pCodecCtx->codec_id == AV_CODEC_ID_H264) {
+-			av_dict_set(&param, "preset", "slow", 0);
+-			av_dict_set(&param, "tune", "zerolatency", 0);
+-		}
+-
+-		av_dump_format(pFormatCtx, 0, out_file, 1);
+-
+-		int res = avcodec_open2(pCodecCtx, pCodec, &param);
+-		if(res < 0){
+-			SIBR_WRG << "[FFMPEG] Failed to open encoder, error: " << res << std::endl;
+-			return;
+-		}
+-		// Write the file header.
+-		avformat_write_header(pFormatCtx, NULL);
+-
+-		// Prepare the scratch frame.
+-		frameYUV = av_frame_alloc();
+-		frameYUV->format = (int)pCodecCtx->pix_fmt;
+-		frameYUV->width = w;
+-		frameYUV->height = h;
+-		frameYUV->linesize[0] = w;
+-		frameYUV->linesize[1] = w / 2;
+-		frameYUV->linesize[2] = w / 2;
+-
+-		yuSize[0] = frameYUV->linesize[0] * h;
+-		yuSize[1] = frameYUV->linesize[1] * h / 2;
+-
+-		pkt = av_packet_alloc();
+-
+-		initWasFine = true;
+-		needFree = true;
+-#endif
++		initWasFine = false;
++		needFree = false;
+ 	}
+ 
+-
+-	bool FFVideoEncoder::operator<<(cv::Mat frame)
++	bool FFVideoEncoder::operator<<(cv::Mat)
+ 	{
+-#ifndef HEADLESS
+-		if (!video_st) {
+-			return false;
+-		}
+-		cv::Mat local;
+-		if (frame.cols != w || frame.rows != h) {
+-			if(_forceResize) {
+-				cv::resize(frame, local, cv::Size(w,h));
+-			} else {
+-				SIBR_WRG << "[FFMPEG] Frame doesn't have the same dimensions as the video." << std::endl;
+-				return false;
+-			}
+-		} else {
+-			local = frame;
+-		}
+-
+-		cv::cvtColor(local, cvFrameYUV, cv::COLOR_BGR2YUV_I420);
+-		frameYUV->data[0] = cvFrameYUV.data;
+-		frameYUV->data[1] = frameYUV->data[0] + yuSize[0];
+-		frameYUV->data[2] = frameYUV->data[1] + yuSize[1];
+-
+-		//frameYUV->pts = (1.0 / std::round(fps)) *frameCount * 90;
+-		frameYUV->pts = (int)(frameCount*(video_st->time_base.den) / ((video_st->time_base.num) * std::round(fps)));
+-		++frameCount;
+-
+-		return encode(frameYUV);
+-#else
+-		SIBR_ERR << "Not supported in headless" << std::endl;
++		SIBR_WRG << "[FFMPEG] Video encoding is disabled in this local SIBR build." << std::endl;
+ 		return false;
+-#endif
+ 	}
+ 
+-	bool FFVideoEncoder::operator<<(const sibr::ImageRGB & frame){
+-		return (*this)<<(frame.toOpenCVBGR());
++	bool FFVideoEncoder::operator<<(const sibr::ImageRGB &)
++	{
++		SIBR_WRG << "[FFMPEG] Video encoding is disabled in this local SIBR build." << std::endl;
++		return false;
+ 	}
+ 
+ #ifndef HEADLESS
+-	bool FFVideoEncoder::encode(AVFrame * frame)
++	bool FFVideoEncoder::encode(AVFrame *)
+ 	{
+-		int got_picture = 0;
+-
+-		int ret = avcodec_encode_video2(pCodecCtx, pkt, frameYUV, &got_picture);
+-		if (ret < 0) {
+-			SIBR_WRG << "[FFMPEG] Failed to encode frame." << std::endl;
+-			return false;
+-		}
+-		if (got_picture == 1) {
+-			pkt->stream_index = video_st->index;
+-			ret = av_write_frame(pFormatCtx, pkt);
+-			av_packet_unref(pkt);
+-		}
+-
+-		return true;
++		return false;
+ 	}
+ #endif
+ 
+diff --git a/src/core/video/VideoUtils.hpp b/src/core/video/VideoUtils.hpp
+index e79dac1..db7d321 100644
+--- a/src/core/video/VideoUtils.hpp
++++ b/src/core/video/VideoUtils.hpp
+@@ -936,10 +936,10 @@ namespace sibr {
+ 		}
+ 
+ 		uint getModeIndice() const {
+-			uint mode, mode_size = 0;
+-			for (const auto & [key, val] : bins) {
+-				if (val > mode_size) {
+-					mode_size = val;
++			uint mode = 0, mode_size = 0;
++			for (uint key = 0; key < bins.size(); ++key) {
++				if (bins[key] > mode_size) {
++					mode_size = bins[key];
+ 					mode = key;
+ 				}
+ 			}
+diff --git a/src/core/view/InteractiveCameraHandler.cpp b/src/core/view/InteractiveCameraHandler.cpp
+index 88145b0..076f1d5 100755
+--- a/src/core/view/InteractiveCameraHandler.cpp
++++ b/src/core/view/InteractiveCameraHandler.cpp
+@@ -441,7 +441,7 @@ namespace sibr {
+ 				std::cin.get();
+ 
+ 				_cameraRecorder.reset();
+-				if (boost::filesystem::extension(filename) == ".out")
++				if (boost::filesystem::path(filename).extension().string() == ".out")
+ 					_cameraRecorder.loadBundle(filename, w, h);
+ 				else
+ 					_cameraRecorder.load(filename);
+@@ -685,11 +685,12 @@ namespace sibr {
+ 						if (!selectedFile.empty()) {
+ 							SIBR_LOG << "Loading" << std::endl;
+ 							_cameraRecorder.reset();
+-							if (boost::filesystem::extension(selectedFile) == ".out")
++							const std::string extension = boost::filesystem::path(selectedFile).extension().string();
++							if (extension == ".out")
+ 								_cameraRecorder.loadBundle(selectedFile, _currentCamera.w(), _currentCamera.h());
+-							else if (boost::filesystem::extension(selectedFile) == ".lookat")
++							else if (extension == ".lookat")
+ 								_cameraRecorder.loadLookat(selectedFile, _currentCamera.w(), _currentCamera.h());
+-							else if (boost::filesystem::extension(selectedFile) == ".txt")
++							else if (extension == ".txt")
+ 								_cameraRecorder.loadColmap(selectedFile, _currentCamera.w(), _currentCamera.h());
+ 							else
+ 								_cameraRecorder.load(selectedFile);
+@@ -759,4 +760,3 @@ namespace sibr {
+ 	}
+ 
+ }
+-
+diff --git a/src/projects/dataset_tools/preprocess/nvmToSIBR/main.cpp b/src/projects/dataset_tools/preprocess/nvmToSIBR/main.cpp
+index 3fc6bef..3291d50 100644
+--- a/src/projects/dataset_tools/preprocess/nvmToSIBR/main.cpp
++++ b/src/projects/dataset_tools/preprocess/nvmToSIBR/main.cpp
+@@ -74,12 +74,12 @@ int main(const int argc, const char** argv)
+ 	for (int c = minCam; c < maxCam; c++) {
+ 		InputCamera & camIm = *cams[c];
+ 
+-		std::string extensionFile = boost::filesystem::extension(camIm.name());
++		std::string extensionFile = boost::filesystem::path(camIm.name()).extension().string();
+ 		std::ostringstream ssZeroPad;
+ 		ssZeroPad << std::setw(8) << std::setfill('0') << camIm.id();
+ 		std::string newFileName = ssZeroPad.str() + extensionFile;
+ 
+-		boost::filesystem::copy_file(pathScene + "/nvm/" + camIm.name(), pathScene + "/images/" + newFileName, boost::filesystem::copy_option::overwrite_if_exists);
++		boost::filesystem::copy_file(pathScene + "/nvm/" + camIm.name(), pathScene + "/images/" + newFileName, boost::filesystem::copy_options::overwrite_existing);
+ 		outputBundleCam << camIm.toBundleString();
+ 		outputListIm << newFileName << " " << camIm.w() << " " << camIm.h() << std::endl;
+ 		outputSceneMetadata << newFileName << " " << camIm.w() << " " << camIm.h() << " " << camIm.znear() << " " << camIm.zfar() << std::endl;
+@@ -103,4 +103,4 @@ int main(const int argc, const char** argv)
+ 	sibr::copyFile(meshPath, pathScene + "/meshes/recon.ply", true);
+ 
+ 	return EXIT_SUCCESS;
+-}
+\ No newline at end of file
++}
+diff --git a/src/projects/dataset_tools/preprocess/prepareColmap4Sibr/main.cpp b/src/projects/dataset_tools/preprocess/prepareColmap4Sibr/main.cpp
+index ae44c53..2792759 100644
+--- a/src/projects/dataset_tools/preprocess/prepareColmap4Sibr/main.cpp
++++ b/src/projects/dataset_tools/preprocess/prepareColmap4Sibr/main.cpp
+@@ -67,7 +67,7 @@ int main(const int argc, const char** argv)
+ 		for (int c = 0; c < cams.size(); c++) {
+ 			InputCamera & camIm = *cams[c];
+ 
+-			std::string extensionFile = boost::filesystem::extension(camIm.name());
++			std::string extensionFile = boost::filesystem::path(camIm.name()).extension().string();
+ 			std::ostringstream ssZeroPad;
+ 			ssZeroPad << std::setw(8) << std::setfill('0') << camIm.id();
+ 			std::string newFileName = ssZeroPad.str() + extensionFile;
+@@ -93,7 +93,7 @@ int main(const int argc, const char** argv)
+ 		std::string SMName = cm_path +  "/scene_metadata.txt"; 
+ 
+ 		SIBR_LOG << "Copying " << tmpFileName << " to " << SMName << std::endl;
+-		boost::filesystem::copy_file( tmpFileName, SMName, boost::filesystem::copy_option::overwrite_if_exists);
++		boost::filesystem::copy_file( tmpFileName, SMName, boost::filesystem::copy_options::overwrite_existing);
+ 		boost::filesystem::remove(tmpFileName);
+ 
+ 		exit(0);
+@@ -132,12 +132,12 @@ int main(const int argc, const char** argv)
+ 	for (int c = minCam; c < maxCam; c++) {
+ 		InputCamera & camIm = *cams[c];
+ 
+-		std::string extensionFile = boost::filesystem::extension(camIm.name());
++		std::string extensionFile = boost::filesystem::path(camIm.name()).extension().string();
+ 		std::ostringstream ssZeroPad;
+ 		ssZeroPad << std::setw(8) << std::setfill('0') << camIm.id();
+ 		std::string newFileName = ssZeroPad.str() + extensionFile;
+ 
+-		boost::filesystem::copy_file(pathScene + "/colmap/stereo/images/" + camIm.name(), pathScene + "/sfm_mvs_cm/" + newFileName, boost::filesystem::copy_option::overwrite_if_exists);
++		boost::filesystem::copy_file(pathScene + "/colmap/stereo/images/" + camIm.name(), pathScene + "/sfm_mvs_cm/" + newFileName, boost::filesystem::copy_options::overwrite_existing);
+ 		// keep focal
+ 		outputBundleCam << camIm.toBundleString(false, true);
+ 		outputListIm << newFileName << " " << camIm.w() << " " << camIm.h() << std::endl;
+diff --git a/src/projects/gaussianviewer/renderer/GaussianView.cpp b/src/projects/gaussianviewer/renderer/GaussianView.cpp
+index b9fe1e5..57a3725 100644
+--- a/src/projects/gaussianviewer/renderer/GaussianView.cpp
++++ b/src/projects/gaussianviewer/renderer/GaussianView.cpp
+@@ -12,6 +12,10 @@
+ #include <projects/gaussianviewer/renderer/GaussianView.hpp>
+ #include <core/graphics/GUI.hpp>
+ #include <thread>
++#include <cmath>
++#include <cstdlib>
++#include <fstream>
++#include <limits>
+ #include <boost/asio.hpp>
+ #include <rasterizer.h>
+ #include <imgui_internal.h>
+@@ -245,6 +249,96 @@ void savePly(const char* filename,
+ 
+ namespace sibr
+ {
++	namespace
++	{
++		void logFallbackBufferStats(const std::vector<char>& bytes, int width, int height)
++		{
++			static int frame = 0;
++			const size_t pixel_count = static_cast<size_t>(width) * static_cast<size_t>(height);
++			if (frame >= 3 || bytes.size() < pixel_count * 3 * sizeof(float))
++			{
++				frame++;
++				return;
++			}
++
++			const float* values = reinterpret_cast<const float*>(bytes.data());
++			float min_rgb[3] = {
++				std::numeric_limits<float>::infinity(),
++				std::numeric_limits<float>::infinity(),
++				std::numeric_limits<float>::infinity()
++			};
++			float max_rgb[3] = {
++				-std::numeric_limits<float>::infinity(),
++				-std::numeric_limits<float>::infinity(),
++				-std::numeric_limits<float>::infinity()
++			};
++			double mean_rgb[3] = { 0.0, 0.0, 0.0 };
++			size_t finite_rgb[3] = { 0, 0, 0 };
++
++			for (int ch = 0; ch < 3; ++ch)
++			{
++				const float* channel = values + static_cast<size_t>(ch) * pixel_count;
++				for (size_t i = 0; i < pixel_count; ++i)
++				{
++					const float v = channel[i];
++					if (!std::isfinite(v))
++					{
++						continue;
++					}
++					min_rgb[ch] = std::min(min_rgb[ch], v);
++					max_rgb[ch] = std::max(max_rgb[ch], v);
++					mean_rgb[ch] += v;
++					finite_rgb[ch]++;
++				}
++				if (finite_rgb[ch] > 0)
++				{
++					mean_rgb[ch] /= static_cast<double>(finite_rgb[ch]);
++				}
++			}
++
++			const size_t center = static_cast<size_t>(height / 2) * static_cast<size_t>(width) + static_cast<size_t>(width / 2);
++			SIBR_LOG << "SIBR fallback frame " << frame
++				<< " stats: resolution=" << width << "x" << height
++				<< " R[min,max,mean]=" << min_rgb[0] << "," << max_rgb[0] << "," << mean_rgb[0]
++				<< " G[min,max,mean]=" << min_rgb[1] << "," << max_rgb[1] << "," << mean_rgb[1]
++				<< " B[min,max,mean]=" << min_rgb[2] << "," << max_rgb[2] << "," << mean_rgb[2]
++				<< " centerRGB=" << values[center] << ","
++				<< values[pixel_count + center] << ","
++				<< values[2 * pixel_count + center]
++				<< std::endl;
++
++			if (frame == 0)
++			{
++				const char* dump_path = std::getenv("SIBR_FALLBACK_DUMP_PPM");
++				if (dump_path != nullptr && dump_path[0] != '\0')
++				{
++					std::ofstream ppm(dump_path, std::ios::binary);
++					if (ppm.good())
++					{
++						ppm << "P6\n" << width << " " << height << "\n255\n";
++						for (int y = 0; y < height; ++y)
++						{
++							for (int x = 0; x < width; ++x)
++							{
++								const size_t i = static_cast<size_t>(y) * static_cast<size_t>(width) + static_cast<size_t>(x);
++								unsigned char rgb[3];
++								for (int ch = 0; ch < 3; ++ch)
++								{
++									const float v = values[static_cast<size_t>(ch) * pixel_count + i];
++									const float clamped = std::max(0.0f, std::min(1.0f, v));
++									rgb[ch] = static_cast<unsigned char>(std::round(clamped * 255.0f));
++								}
++								ppm.write(reinterpret_cast<const char*>(rgb), 3);
++							}
++						}
++						SIBR_LOG << "Wrote SIBR fallback debug PPM: " << dump_path << std::endl;
++					}
++				}
++			}
++			frame++;
++		}
++	}
++
+ 	// A simple copy renderer class. Much like the original, but this one
+ 	// reads from a buffer instead of a texture and blits the result to
+ 	// a render target. 
+@@ -266,6 +360,9 @@ namespace sibr
+ 
+ 		void process(uint bufferID, IRenderTarget& dst, int width, int height, bool disableTest = true)
+ 		{
++			_width.get() = width;
++			_height.get() = height;
++
+ 			if (disableTest)
+ 				glDisable(GL_DEPTH_TEST);
+ 			else
+@@ -305,10 +402,14 @@ std::function<char* (size_t N)> resizeFunctional(void** ptr, size_t& S) {
+ 	auto lambda = [ptr, &S](size_t N) {
+ 		if (N > S)
+ 		{
++			const size_t large_allocation_threshold = 512ull * 1024ull * 1024ull;
++			const size_t target_size = N < large_allocation_threshold ? 2 * N : N;
+ 			if (*ptr)
+-				CUDA_SAFE_CALL(cudaFree(*ptr));
+-			CUDA_SAFE_CALL(cudaMalloc(ptr, 2 * N));
+-			S = 2 * N;
++			{
++				CUDA_SAFE_CALL_ALWAYS(cudaFree(*ptr));
++			}
++			CUDA_SAFE_CALL_ALWAYS(cudaMalloc(ptr, target_size));
++			S = target_size;
+ 		}
+ 		return reinterpret_cast<char*>(*ptr);
+ 	};
+@@ -334,9 +435,16 @@ sibr::GaussianView::GaussianView(const sibr::BasicIBRScene::Ptr & ibrScene, uint
+ 	CUDA_SAFE_CALL_ALWAYS(cudaSetDevice(device));
+ 	cudaDeviceProp prop;
+ 	CUDA_SAFE_CALL_ALWAYS(cudaGetDeviceProperties(&prop, device));
++	if (prop.major < 6)
++	{
++		SIBR_ERR << "Sorry, need at least compute capability 6.0+!";
++	}
+ 	if (prop.major < 7)
+ 	{
+-		SIBR_ERR << "Sorry, need at least compute capability 7.0+!";
++		SIBR_WRG << "Running Gaussian viewer on compute capability " << prop.major << "." << prop.minor
++			<< ". Upstream SIBR recommends 7.0+, but this local build includes sm_61 for GTX 1080 Ti compatibility." << std::endl;
++		_fastCulling = false;
++		SIBR_WRG << "Disabling fast Gaussian culling by default on compute capability 6.x for compatibility." << std::endl;
+ 	}
+ 
+ 	_pointbasedrenderer.reset(new PointBasedRenderer());
+@@ -415,7 +523,7 @@ sibr::GaussianView::GaussianView(const sibr::BasicIBRScene::Ptr & ibrScene, uint
+ 
+ 	// Create GL buffer ready for CUDA/GL interop
+ 	glCreateBuffers(1, &imageBuffer);
+-	glNamedBufferStorage(imageBuffer, render_w * render_h * 3 * sizeof(float), nullptr, GL_DYNAMIC_STORAGE_BIT);
++	glNamedBufferData(imageBuffer, render_w * render_h * 3 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+ 
+ 	if (useInterop)
+ 	{
+@@ -429,7 +537,7 @@ sibr::GaussianView::GaussianView(const sibr::BasicIBRScene::Ptr & ibrScene, uint
+ 	if (!useInterop)
+ 	{
+ 		fallback_bytes.resize(render_w * render_h * 3 * sizeof(float));
+-		cudaMalloc(&fallbackBufferCuda, fallback_bytes.size());
++		CUDA_SAFE_CALL_ALWAYS(cudaMalloc(&fallbackBufferCuda, fallback_bytes.size()));
+ 		_interop_failed = true;
+ 	}
+ 
+@@ -491,6 +599,21 @@ void sibr::GaussianView::onRenderIBR(sibr::IRenderTarget & dst, const sibr::Came
+ 		}
+ 		else
+ 		{
++			const size_t required_frame_bytes = static_cast<size_t>(_resolution.x()) * static_cast<size_t>(_resolution.y()) * 3 * sizeof(float);
++			if (fallback_bytes.size() < required_frame_bytes)
++			{
++				SIBR_WRG << "Resizing CUDA fallback image buffer from " << fallback_bytes.size()
++					<< " to " << required_frame_bytes << " bytes." << std::endl;
++				fallback_bytes.resize(required_frame_bytes);
++				if (fallbackBufferCuda != nullptr)
++				{
++					CUDA_SAFE_CALL_ALWAYS(cudaFree(fallbackBufferCuda));
++				}
++				CUDA_SAFE_CALL_ALWAYS(cudaMalloc(&fallbackBufferCuda, required_frame_bytes));
++				glNamedBufferData(imageBuffer, required_frame_bytes, nullptr, GL_DYNAMIC_DRAW);
++				_copyRenderer->width() = _resolution.x();
++				_copyRenderer->height() = _resolution.y();
++			}
+ 			image_cuda = fallbackBufferCuda;
+ 		}
+ 
+@@ -526,6 +649,7 @@ void sibr::GaussianView::onRenderIBR(sibr::IRenderTarget & dst, const sibr::Came
+ 			boxmin,
+ 			boxmax
+ 		);
++		CUDA_SAFE_CALL_ALWAYS(cudaDeviceSynchronize());
+ 
+ 		if (!_interop_failed)
+ 		{
+@@ -535,6 +659,7 @@ void sibr::GaussianView::onRenderIBR(sibr::IRenderTarget & dst, const sibr::Came
+ 		else
+ 		{
+ 			CUDA_SAFE_CALL(cudaMemcpy(fallback_bytes.data(), fallbackBufferCuda, fallback_bytes.size(), cudaMemcpyDeviceToHost));
++			logFallbackBufferStats(fallback_bytes, _resolution.x(), _resolution.y());
+ 			glNamedBufferSubData(imageBuffer, 0, fallback_bytes.size(), fallback_bytes.data());
+ 		}
+ 		// Copy image contents to framebuffer

@@ -1,0 +1,169 @@
+{
+  "schema_version": "1.0.0",
+  "captured_at": "2026-08-13T02:30:00+09:00",
+  "remote_state_basis": "local remote-tracking refs; no network fetch was performed",
+  "apply_order": [
+    "graphdeco_gaussian_splatting",
+    "sibr_core",
+    "sibr_cuda_rasterizer",
+    "gaussian_opacity_fields",
+    "sugar",
+    "nvdiffrast"
+  ],
+  "dependencies": [
+    {
+      "id": "graphdeco_gaussian_splatting",
+      "role": "reference 3DGS reconstruction and SIBR parent checkout",
+      "local_path": "external/graphdeco-gaussian-splatting",
+      "origin": "https://github.com/graphdeco-inria/gaussian-splatting.git",
+      "base_commit": "54c035f7834b564019656c3e3fcc3646292f727d",
+      "checkout_state": "branch:main",
+      "upstream_ref": "origin/main",
+      "ahead": 0,
+      "behind": 0,
+      "patch": null,
+      "license_file": "LICENSE.md",
+      "notes": [
+        "SIBR_viewers gitlink remains d8856f60c5384cc1975439193bb627d77d917d77.",
+        "The parent worktree appears dirty only because the nested SIBR checkout has local modifications; the gitlink itself is unchanged."
+      ]
+    },
+    {
+      "id": "sibr_core",
+      "role": "interactive Gaussian viewer with WSLg and GTX 1080 Ti compatibility changes",
+      "local_path": "external/graphdeco-gaussian-splatting/SIBR_viewers",
+      "origin": "https://gitlab.inria.fr/sibr/sibr_core.git",
+      "base_commit": "d8856f60c5384cc1975439193bb627d77d917d77",
+      "checkout_state": "detached",
+      "registered_by": "graphdeco_gaussian_splatting:SIBR_viewers",
+      "patch": {
+        "path": "patches/external/sibr_core_d8856f60_local_compat.patch",
+        "format": "git-diff-binary",
+        "sha256": "ad77220c6027d20a739a91c1f1ff2b7700fd1bcad99740430576fe4456858bbc",
+        "strip": 1
+      },
+      "modified_paths": [
+        "src/core/assets/CameraRecorder.cpp",
+        "src/core/graphics/Window.cpp",
+        "src/core/raycaster/CMakeLists.txt",
+        "src/core/scene/ProxyMesh.cpp",
+        "src/core/system/Utils.cpp",
+        "src/core/video/FFmpegVideoEncoder.cpp",
+        "src/core/video/VideoUtils.hpp",
+        "src/core/view/InteractiveCameraHandler.cpp",
+        "src/projects/dataset_tools/preprocess/nvmToSIBR/main.cpp",
+        "src/projects/dataset_tools/preprocess/prepareColmap4Sibr/main.cpp",
+        "src/projects/gaussianviewer/renderer/GaussianView.cpp"
+      ],
+      "excluded_generated_paths": [
+        "build-conda/",
+        "build-conda2/",
+        "build-conda3/",
+        "build-conda4/"
+      ],
+      "license_file": "LICENSE.md"
+    },
+    {
+      "id": "sibr_cuda_rasterizer",
+      "role": "nested SIBR Gaussian rasterizer with sm_61 and allocation diagnostics",
+      "local_path": "external/graphdeco-gaussian-splatting/SIBR_viewers/extlibs/CudaRasterizer/CudaRasterizer",
+      "origin": "https://github.com/graphdeco-inria/diff-gaussian-rasterization.git",
+      "base_commit": "255c532d5fd0c3d83afec0e8e49574b65ae381bd",
+      "checkout_state": "detached",
+      "registered_by": "sibr_core CMake external dependency",
+      "patch": {
+        "path": "patches/external/sibr_cuda_rasterizer_255c532d_sm61.patch",
+        "format": "git-diff-binary",
+        "sha256": "ba874d517a6dfa6235fd90086af18484b537596b857592f4e1ab5bb5f30024ed",
+        "strip": 1
+      },
+      "modified_paths": [
+        "CMakeLists.txt",
+        "cuda_rasterizer/rasterizer_impl.cu",
+        "cuda_rasterizer/rasterizer_impl.h"
+      ],
+      "license_file": null,
+      "license_note": "No license file was present at this nested checkout root; follow the upstream repository and parent SIBR license terms."
+    },
+    {
+      "id": "gaussian_opacity_fields",
+      "role": "offline static GS reconstruction and mesh-extraction support",
+      "local_path": "external/gaussian-opacity-fields",
+      "origin": "https://github.com/autonomousvision/gaussian-opacity-fields.git",
+      "base_commit": "5245b20e5d11acd6d1ff5af4b890dc2bedd99693",
+      "checkout_state": "branch:main",
+      "upstream_ref": "origin/main",
+      "ahead": 0,
+      "behind": 0,
+      "patch": {
+        "path": "patches/external/gof_5245b20_local_build.patch",
+        "format": "git-diff-binary",
+        "sha256": "ba0142b35d1dc787e9846ac4b7c04d1d266529dd93492e3e4dc04cf957fb1b64",
+        "strip": 1
+      },
+      "modified_paths": [
+        "submodules/diff-gaussian-rasterization/diff_gaussian_rasterization.egg-info/PKG-INFO",
+        "submodules/tetra-triangulation/CMakeLists.txt",
+        "submodules/tetra-triangulation/cmake/FindTorch.cmake"
+      ],
+      "generated_metadata_paths": [
+        "submodules/diff-gaussian-rasterization/diff_gaussian_rasterization.egg-info/PKG-INFO"
+      ],
+      "license_file": "LICENSE.md"
+    },
+    {
+      "id": "sugar",
+      "role": "offline mesh-extraction comparison/support",
+      "local_path": "external/SuGaR",
+      "origin": "https://github.com/Anttwo/SuGaR.git",
+      "base_commit": "7c10c4ae4a267dece512f5c7f40ed212a0a2ab44",
+      "checkout_state": "branch:main",
+      "upstream_ref": "origin/main",
+      "ahead": 0,
+      "behind": 0,
+      "patch": {
+        "path": "patches/external/sugar_7c10c4a_simple_knn.patch",
+        "format": "git-diff-binary",
+        "sha256": "cf79ba862eeae40e9df5c63ab70c84e2b1bac4d53c17eae9e469ee2dbe43bb98",
+        "strip": 1
+      },
+      "modified_paths": [
+        "gaussian_splatting/submodules/simple-knn/simple_knn.cu"
+      ],
+      "license_file": "LICENSE.md"
+    },
+    {
+      "id": "nvdiffrast",
+      "role": "separate nested checkout used by SuGaR",
+      "local_path": "external/SuGaR/nvdiffrast",
+      "origin": "https://github.com/NVlabs/nvdiffrast",
+      "base_commit": "253ac4fcea7de5f396371124af597e6cc957bfae",
+      "checkout_state": "branch:main",
+      "upstream_ref": "origin/main",
+      "ahead": 0,
+      "behind": 0,
+      "patch": null,
+      "excluded_generated_paths": [
+        "build/",
+        "nvdiffrast.egg-info/"
+      ],
+      "license_file": "LICENSE.txt"
+    }
+  ],
+  "sibr_nested_clean_dependencies": [
+    {"id": "glm", "commit": "5c46b9c07008ae65cb81ab79cd677ecc1934b903", "origin": "https://github.com/g-truc/glm.git"},
+    {"id": "imgui", "commit": "741fb3ab6c7e", "origin": "https://gitlab.inria.fr/sibr/libs/imgui.git"},
+    {"id": "mrf", "commit": "30c3c9494a00", "origin": "https://gitlab.inria.fr/sibr/libs/mrf.git"},
+    {"id": "nanoflann", "commit": "7a20a9ac0a1d", "origin": "https://gitlab.inria.fr/sibr/libs/nanoflann.git"},
+    {"id": "nativefiledialog", "commit": "ae2fab73cf44", "origin": "https://gitlab.inria.fr/sibr/libs/nativefiledialog.git"},
+    {"id": "picojson", "commit": "7cf8feee93c8", "origin": "https://gitlab.inria.fr/sibr/libs/picojson.git"},
+    {"id": "rapidxml", "commit": "069e87f5ec5c", "origin": "https://gitlab.inria.fr/sibr/libs/rapidxml.git"},
+    {"id": "xatlas", "commit": "0fbe06a5368d", "origin": "https://gitlab.inria.fr/sibr/libs/xatlas.git"}
+  ],
+  "verification": {
+    "patch_sha256_verified": true,
+    "current_worktree_diff_check": "passed",
+    "network_fetch_performed": false,
+    "clean_base_archive_apply_check": "passed for all four patches"
+  }
+}

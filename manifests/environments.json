@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0.0",
+  "captured_at": "2026-08-13T02:30:00+09:00",
+  "host": {
+    "kernel": "Linux 6.6.87.2-microsoft-standard-WSL2",
+    "architecture": "x86_64",
+    "workspace_filesystem": "/dev/sdd",
+    "known_gpu_from_prior_native_probe": "NVIDIA GeForce GTX 1080 Ti",
+    "known_compute_capability": "6.1",
+    "current_sandbox_gpu_probe": "NVML access blocked; torch.cuda.is_available() == false"
+  },
+  "root_venv": {
+    "path": ".venv",
+    "python": "3.12.3",
+    "packages": {
+      "glcontext": "3.0.0",
+      "glfw": "2.10.0",
+      "gsplat": "1.5.3",
+      "moderngl": "5.12.0",
+      "numpy": "2.4.4",
+      "Pillow": "12.1.1",
+      "torch": "2.12.1+cu130"
+    },
+    "missing_td00_dev_dependencies": [
+      "pytest",
+      "PyYAML",
+      "scipy"
+    ],
+    "authority": "temporary legacy/viewer environment; not yet the TD00 lockfile"
+  },
+  "conda_environments": [
+    {
+      "id": "gof",
+      "path": "/home/choi/conda-envs/wind3dgs/gof",
+      "python": "3.8.20",
+      "torch": "1.12.1+cu113",
+      "numpy": "1.24.4",
+      "role": "offline GOF training and extraction"
+    },
+    {
+      "id": "sibr",
+      "path": "/home/choi/conda-envs/wind3dgs/sibr",
+      "python": "3.13.14",
+      "torch": null,
+      "numpy": "2.5.0",
+      "role": "SIBR build/runtime libraries"
+    },
+    {
+      "id": "sugar",
+      "path": "/home/choi/conda-envs/wind3dgs/sugar",
+      "python": "3.9.18",
+      "torch": "2.0.1",
+      "numpy": "1.26.2",
+      "role": "offline SuGaR processing"
+    }
+  ],
+  "cuda": {
+    "nvcc_on_current_path": false,
+    "root_torch_built_for_cuda": "13.0",
+    "gsplat_1_5_3_known_cc61_issue": "cooperative_groups::labeled_partition requires compute capability 7.0 or newer",
+    "policy": "TD core contracts and CPU tests must not depend on the renderer; paper rendering requires a compatible backend/GPU."
+  },
+  "follow_up": [
+    "Create pyproject dependency groups for core, dev, render and teacher.",
+    "Generate a reproducible lock after solver and teacher library choices are fixed.",
+    "Repeat GPU probes outside the restricted sandbox before claiming runtime rendering support."
+  ]
+}

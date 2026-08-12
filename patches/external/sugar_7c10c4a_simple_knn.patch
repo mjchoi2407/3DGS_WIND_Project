@@ -1,0 +1,19 @@
+diff --git a/gaussian_splatting/submodules/simple-knn/simple_knn.cu b/gaussian_splatting/submodules/simple-knn/simple_knn.cu
+index e72e4c9..fbf9e22 100644
+--- a/gaussian_splatting/submodules/simple-knn/simple_knn.cu
++++ b/gaussian_splatting/submodules/simple-knn/simple_knn.cu
+@@ -16,6 +16,7 @@
+ #include "simple_knn.h"
+ #include <cub/cub.cuh>
+ #include <cub/device/device_radix_sort.cuh>
++#include <float.h>
+ #include <vector>
+ #include <cuda_runtime_api.h>
+ #include <thrust/device_vector.h>
+@@ -218,4 +219,4 @@ void SimpleKNN::knn(int P, float3* points, float* meanDists)
+ 	boxMeanDist << <num_boxes, BOX_SIZE >> > (P, points, indices_sorted.data().get(), boxes.data().get(), meanDists);
+ 
+ 	cudaFree(result);
+-}
+\ No newline at end of file
++}
