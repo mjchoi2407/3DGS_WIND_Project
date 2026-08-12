@@ -10,10 +10,14 @@ Container workspace for the Wind3DGS split repositories.
 
 - root: project-container policy, cross-repository coordination, and root session notes
 - `code/`: reusable implementation and code-side session notes
-- `ideas/`: research sketch, checklist, references, changelog, and idea-side session notes
+- `ideas/`: canonical research index, current sketch, checklist, references, archived prior ideas, and idea-side session notes
 - `experiments/`: experiment records, assets, outputs, reports, and experiment-side session notes
 
 Each folder is its own Git repository and has its own `AGENTS.md`.
+
+## Current Research Direction
+
+`ideas/README.md` is the stable entry point for the current method. It indexes the active idea sketch, implementation checklist, bibliography, generated PDFs, and the archive boundary for prior directions.
 
 ## Git Remotes
 

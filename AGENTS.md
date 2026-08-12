@@ -27,13 +27,13 @@ Project tag for conversation/session tracking: `Wind3DGS`.
 
 At the start of every meaningful task:
 
-1. Read `../RESEARCH_PROJECT_GUIDE.md`.
-2. Read `../templates/research_project/TEMPLATE_MANIFEST.md`.
-3. Identify the active work folder:
+1. Read this `AGENTS.md` and the root `README.md`.
+2. Identify the active work folder:
    - Code implementation: `code/`
    - Research framing, checklist, references: `ideas/`
    - Experiment records, assets, outputs, reports: `experiments/`
-4. Read the active folder's own `AGENTS.md`.
+3. Read the active folder's own `AGENTS.md`.
+4. If the task depends on the current research direction, read `ideas/README.md` and the current documents indexed there.
 5. Write session history under the active folder's `sessions/`.
 6. Use root-level `sessions/` only for project-wide administration, workspace policy, repository coordination, environment migration notes, or other records that do not belong specifically to `code/`, `ideas/`, or `experiments/`.
 
@@ -63,10 +63,10 @@ At the start of every meaningful task:
 ## Folder Roles
 
 - `code/`: reusable implementation package, configs, scripts, dependencies, and code-side sessions
-- `ideas/`: living research sketch, checklist, references, changelog, generated PDFs, and idea-side sessions
+- `ideas/`: canonical research index, current sketch, checklist, references, generated PDFs, archived prior ideas, and idea-side sessions
 - `experiments/`: experiment READMEs, assets, outputs, reports, wrappers, and experiment-side sessions
 - `paper/`: optional future manuscript workspace
 - `assets/`: optional shared visual materials
 - `sessions/`: project-container administration and cross-repository coordination records only
 
-For generic research workflow conventions, follow `../RESEARCH_PROJECT_GUIDE.md`.
+The canonical current-method entry point is `ideas/README.md`.
