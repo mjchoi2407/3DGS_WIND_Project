@@ -38,8 +38,9 @@ The root repository does not vendor `external/` or the three split repositories.
 - Windows 10 두 대의 WSL2 공유 실행 환경: [현재 메인컴 설정·인계](docs/network/main_pc_status.md), [메인컴 절차](docs/network/main_pc_setup.md), [서브컴 절차](docs/network/sub_pc_setup.md).
 
 - 공통 [AGENTS.md](AGENTS.md)와 active folder의 지침을 따른다. 이미 확인한 지침은 변경된 부분만 재확인한다.
-- 이어갈 작업은 해당 `sessions/README.md`의 최신 요약부터 읽고 필요한 근거만 검색한다.
-- [공통 운영 기록](sessions/README.md), [코드](code/README.md), [연구](ideas/README.md), [실험](experiments/README.md).
+- 맥락이 부족할 때만 해당 `sessions/README.md`에서 주제별 최신 note의 `현재 상태`를 찾고, 거기에 명시된 상세 문서·절 링크로 필요한 근거를 확인한다. 검색은 연결이 없거나 불충분할 때 사용한다.
+- 주제별 상태 복구: [공통 운영](sessions/README.md#현재-상태), [구현](code/sessions/README.md#현재-상태), [연구](ideas/sessions/README.md#현재-상태), [실험](experiments/sessions/README.md#현재-상태). 필요한 주제만 선택한다.
+- 실행·수정 전 해당 [조건부 필수 절차](AGENTS.md#조건부-필수-절차)를 확인한다. 실제 파일·프로세스·버전 확인과 안전 규칙은 맥락 재사용 여부와 관계없이 적용한다.
 
 ## Git Remotes
 
