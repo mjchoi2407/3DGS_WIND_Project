@@ -3,6 +3,9 @@
   "captured_at": "2026-08-13T02:30:00+09:00",
   "project": "Wind3DGS",
   "recovery_tag": "pre-td00-repo-reset-2026-08-13",
+  "snapshot_kind": "historical_recovery_snapshot",
+  "is_live_inventory": false,
+  "snapshot_semantics": "TD00 전환 당시의 복구점과 전환 commit을 보존하며 현재 branch HEAD 또는 원격 최신 상태를 나타내는 live inventory가 아니다.",
   "repositories": [
     {
       "id": "project",
@@ -49,6 +52,7 @@
   ],
   "notes": [
     "Each path is an independent Git repository; the root repository intentionally does not use gitlinks for the split repositories.",
+    "현재 상태를 판단하려면 각 저장소에서 별도로 network fetch와 status 검증을 수행해야 한다.",
     "The recovery tag is local until explicitly pushed by the user.",
     "transition_commits are informational abbreviated IDs created after the recovery point and must not replace recovery_commit as the rollback anchor."
   ]

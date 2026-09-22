@@ -6,7 +6,7 @@
       "cross-repository manifests",
       "external source patches",
       "workspace governance",
-      "paper source"
+      "paper TeX/Bib 및 선택된 figure source"
     ],
     "code": [
       "reusable Python package",
@@ -41,6 +41,12 @@
     "versioned_dataset_inventory": "manifests/datasets.json",
     "external_patch_root": "patches/external/"
   },
+  "root_local_scratch": {
+    "path": "assets/",
+    "tracked": false,
+    "role": "공유 시각 자료의 임시 작업 공간",
+    "promotion_rule": "논문에 최종 채택한 figure source만 paper/figures/ allowlist로 옮겨 검토 후 추적한다."
+  },
   "git_policy": {
     "track": [
       "source code and schemas",
@@ -49,7 +55,9 @@
       "README and reports",
       "run_manifest.schema.json",
       "external patch files",
-      "paper TeX/Bib sources"
+      "paper TeX/Bib sources",
+      "paper/figures/ 아래 선택된 논문 figure source",
+      "secret 값이 없는 .env.example"
     ],
     "do_not_track": [
       "raw public datasets",
@@ -58,6 +66,10 @@
       "per-frame renders and videos unless explicitly selected",
       "external build directories",
       "environment caches",
+      "secret을 포함할 수 있는 .env와 .env.* 파일",
+      "API key, token, credential 및 개인 절대 경로",
+      "root assets/ visual scratch",
+      "paper/figures/ 밖의 manuscript build PDF",
       "download metadata streams such as Zone.Identifier and mshield"
     ]
   },

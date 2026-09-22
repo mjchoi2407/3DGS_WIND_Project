@@ -1,6 +1,9 @@
 {
   "schema_version": "1.0.0",
   "captured_at": "2026-08-13T02:30:00+09:00",
+  "snapshot_kind": "historical_environment_observation",
+  "is_live_inventory": false,
+  "snapshot_semantics": "2026-08-13에 관측한 환경 기록이며 현재 설치 상태나 dependency source of truth를 자동으로 나타내지 않는다.",
   "host": {
     "kernel": "Linux 6.6.87.2-microsoft-standard-WSL2",
     "architecture": "x86_64",
@@ -28,10 +31,14 @@
     ],
     "authority": "temporary legacy/viewer environment; not yet the TD00 lockfile"
   },
+  "conda_path_policy": {
+    "environment_variable": "WIND3DGS_CONDA_ROOT",
+    "semantics": "개인 홈 절대 경로를 기록하지 않고 Wind3DGS 전용 Conda 환경 루트를 외부 설정으로 주입한다."
+  },
   "conda_environments": [
     {
       "id": "gof",
-      "path": "/home/choi/conda-envs/wind3dgs/gof",
+      "path": "${WIND3DGS_CONDA_ROOT}/gof",
       "python": "3.8.20",
       "torch": "1.12.1+cu113",
       "numpy": "1.24.4",
@@ -39,7 +46,7 @@
     },
     {
       "id": "sibr",
-      "path": "/home/choi/conda-envs/wind3dgs/sibr",
+      "path": "${WIND3DGS_CONDA_ROOT}/sibr",
       "python": "3.13.14",
       "torch": null,
       "numpy": "2.5.0",
@@ -47,7 +54,7 @@
     },
     {
       "id": "sugar",
-      "path": "/home/choi/conda-envs/wind3dgs/sugar",
+      "path": "${WIND3DGS_CONDA_ROOT}/sugar",
       "python": "3.9.18",
       "torch": "2.0.1",
       "numpy": "1.26.2",
@@ -60,8 +67,17 @@
     "gsplat_1_5_3_known_cc61_issue": "cooperative_groups::labeled_partition requires compute capability 7.0 or newer",
     "policy": "TD core contracts and CPU tests must not depend on the renderer; paper rendering requires a compatible backend/GPU."
   },
+  "completed_follow_up": [
+    {
+      "item": "Create pyproject dependency groups for core, dev, render and teacher.",
+      "status": "completed_after_capture",
+      "evidence": [
+        "code/pyproject.toml",
+        "code/README.md"
+      ]
+    }
+  ],
   "follow_up": [
-    "Create pyproject dependency groups for core, dev, render and teacher.",
     "Generate a reproducible lock after solver and teacher library choices are fixed.",
     "Repeat GPU probes outside the restricted sandbox before claiming runtime rendering support."
   ]

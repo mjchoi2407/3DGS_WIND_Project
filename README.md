@@ -4,16 +4,17 @@
 
 # Wind Deformable 3DGS
 
-Container workspace for the Wind3DGS split repositories.
+Wind3DGS의 분리된 저장소를 함께 운영하기 위한 container workspace이자 독립된 governance 저장소다.
 
 ## Project Repositories
 
-- root: project-container policy, cross-repository coordination, and root session notes
+- root (`3DGS_WIND_Project`): project-container 정책, cross-repository 조정, 재현성 manifest, external patch, manuscript source와 root session note를 관리하는 독립 저장소
 - `code/`: reusable implementation and code-side session notes
 - `ideas/`: canonical research index, current sketch, checklist, references, archived prior ideas, and idea-side session notes
 - `experiments/`: experiment records, assets, outputs, reports, and experiment-side session notes
 
-Each folder is its own Git repository and has its own `AGENTS.md`.
+Root와 세 하위 폴더는 모두 독립 Git 저장소다. 하위 저장소는 submodule/gitlink가 아니며,
+root의 commit이나 push에 포함되지 않는다.
 
 ## Current Research Direction
 
@@ -23,9 +24,22 @@ Each folder is its own Git repository and has its own `AGENTS.md`.
 
 - `manifests/`: split-repository recovery points, external dependency pins, environment observations, dataset inventory, and artifact ownership policy
 - `patches/external/`: exact local diffs required to reproduce modified external tools
-- `paper/`: version-controlled manuscript sources; generated PDFs remain local unless explicitly selected as a deliverable
+- `paper/`: version-controlled TeX/Bib and selected figure sources; manuscript build PDF와 임시 생성물은 로컬에 둔다
+- `assets/`: Git에서 제외하는 root-local visual scratch 공간; 최종 채택한 figure source만 `paper/figures/`로 옮긴다
 
 The root repository does not vendor `external/` or the three split repositories. Reconstruct them from the recorded remotes and commits, then apply only the patches listed in `manifests/external_dependencies.json`.
+
+`manifests/workspace_repositories.json`은 TD00 전환 시점의 복구점과 전환 commit을 보존하는
+역사적 snapshot이다. 현재 branch HEAD나 원격 최신 상태를 자동으로 나타내지 않으며, 최신
+원격 상태를 판단하려면 각 저장소에서 별도로 fetch해야 한다.
+
+## 작업 시작
+
+- Windows 10 두 대의 WSL2 공유 실행 환경: [현재 메인컴 설정·인계](docs/network/main_pc_status.md), [메인컴 절차](docs/network/main_pc_setup.md), [서브컴 절차](docs/network/sub_pc_setup.md).
+
+- 공통 [AGENTS.md](AGENTS.md)와 active folder의 지침을 따른다. 이미 확인한 지침은 변경된 부분만 재확인한다.
+- 이어갈 작업은 해당 `sessions/README.md`의 최신 요약부터 읽고 필요한 근거만 검색한다.
+- [공통 운영 기록](sessions/README.md), [코드](code/README.md), [연구](ideas/README.md), [실험](experiments/README.md).
 
 ## Git Remotes
 
@@ -36,12 +50,7 @@ The root repository does not vendor `external/` or the three split repositories.
 
 The root repository intentionally excludes the split repository contents under `code/`, `ideas/`, and `experiments/`. Clone or update those repositories separately.
 
-## Session Notes
+## 기록
 
-Write work history inside the relevant work folder:
-
-- `code/sessions/`
-- `ideas/sessions/`
-- `experiments/sessions/`
-
-Use root-level `sessions/` only for project-container administration, workspace policy, repository coordination, and records that do not belong specifically to `code/`, `ideas/`, or `experiments/`.
+기록 위치·언어·Git·보안·재현성 규칙은 [공통 지침](AGENTS.md)을 따른다.
+중간 보고 원문은 저장하지 않으며, 결과·결정·재발 방지 요약과 근거 링크를 각 소유 폴더에 남긴다.

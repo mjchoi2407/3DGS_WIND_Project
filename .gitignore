@@ -3,17 +3,30 @@
 /ideas/
 /experiments/
 
-# Optional root-level local workspaces.
+# Root-local unversioned shared visual scratch. Curated figure sources go to paper/figures/.
 /assets/
+# Manuscript source allowlist. Root build PDFs and temporary outputs remain ignored.
 /paper/*
 !/paper/main.tex
 !/paper/refs.bib
+!/paper/*.tex
+!/paper/*.bib
+!/paper/*.sty
+!/paper/*.cls
+!/paper/*.bst
 !/paper/figures/
 /paper/figures/*
 !/paper/figures/.gitkeep
+!/paper/figures/*.tex
+!/paper/figures/*.svg
+!/paper/figures/*.pdf
+!/paper/figures/*.png
+!/paper/figures/*.jpg
+!/paper/figures/*.jpeg
 !/paper/sections/
 /paper/sections/*
 !/paper/sections/.gitkeep
+!/paper/sections/*.tex
 /external/
 /tmp/
 
@@ -21,7 +34,9 @@
 .venv/
 venv/
 env/
-.env/
+.env
+.env.*
+!.env.example
 __pycache__/
 **/__pycache__/
 *.py[cod]

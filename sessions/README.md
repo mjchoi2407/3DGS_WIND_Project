@@ -1,47 +1,22 @@
-<!-- template: sessions_README.template.md -->
-<!-- template-version: 2026-04-30 19:29:34 KST -->
-<!-- localized-for: Wind_Deformable_3DGS -->
+# 공통 운영 기록
 
-# 루트 Sessions
+## 현재 상태
 
-이 폴더는 Wind3DGS project container 자체에 대한 관리성 기록만 남긴다.
+2026-09-20: [GPU teacher 실행 지침 연결](2026-09-20_01_gpu_runtime_guidance.md). 최상위 `AGENTS.md`에 GPU별 Mixed32·Newmark/Gauss 선택 계약을 필수 참조로 연결했다.
 
-## 사용 범위
+2026-09-14: [정리 요청의 R 문서 동기화 정책](2026-09-14_01_r_document_sync_policy.md). 관련 R 본문·체크리스트·근거 및 PDF/bundle 확인을 정리 범위에 포함한다.
 
-루트 `sessions/`에 기록해도 되는 내용:
+2026-09-12 후속: [서브컴 결과 전용 공유](../docs/network/sub_results_share.md) 생성·실제 SMB 쓰기/읽기/경계 검증 완료. 메인컴 전용 디렉터리에 저장하며 서브컴 관리자 마운트는 대기.
 
-- repository split 정책
-- workspace-level 설정과 마이그레이션
-- 공통 기록 언어/로그 정책
-- `code/`, `ideas/`, `experiments/` 중 하나에만 귀속되지 않는 프로젝트 운영 기록
-- 여러 하위 저장소에 걸친 coordination 요약
+2026-09-12: [메인컴·서브컴 WSL2 설정](2026-09-12_01_two_pc_setup_guides.md). 메인컴 Samba 설치·읽기 전용 검증·Windows 전달과 상대 IP 제한 완료. 서브컴 실제 접속·공유 암호 입력·자동 복구 검증은 남음. [인계](../docs/network/main_pc_status.md).
 
-루트 `sessions/`에 기록하지 않는 내용:
+2026-09-10: [독립 작업 병렬 처리 원칙](2026-09-10_02_parallel_execution_policy.md) 추가. 일반 작업은 병렬 처리를 기본으로 하되 속도 측정·의존성·자원 경쟁은 예외로 둔다.
 
-- 코드 구현, 테스트, 리팩터링 기록 -> `code/sessions/`
-- 연구 아이디어, 논문 방향, checklist, reference 기록 -> `ideas/sessions/`
-- 실험 데이터, 학습, 모델, 산출물, 보고서 기록 -> `experiments/sessions/`
+2026-09-10: [기록·맥락 최적화](2026-09-10_01_token_context_optimization.md) 완료. 중간 보고 원문을 삭제하고 최신 요약·관련 근거만 읽는다.
+공통 정책은 [AGENTS.md](../AGENTS.md)가 소유한다. 이전 보존 정책은 폐기했다.
 
-이 노트들은 extension history가 섞였을 때 project-container 수준의 맥락을 회복하기 위한 용도다.
+## 기록 범위
 
-권장 파일명:
-
-```text
-YYYY-MM-DD_NN_short_topic.md
-```
-
-`NN`은 이 `sessions/` 폴더 안에서 같은 날짜에 만든 기록의 두 자리 순번이다. `01`부터 시작해서 생성 순서대로 증가시킨다. 기존 unnumbered legacy note는 사용자가 명시적으로 migration을 요청하지 않는 한 그대로 둔다.
-
-권장 형식:
-
-```markdown
-# YYYY-MM-DD NN 짧은 주제
-
-## 배경
-
-## 결정
-
-## 변경 파일
-
-## 다음 단계
-```
+Root는 공통 정책·환경·저장소 조정만 기록한다. 구현은 code, 연구는 ideas, 실험은 experiments의 sessions를 사용한다.
+기록 기준과 파일명은 [공통 기록 규칙](../AGENTS.md#간결한-작업-기록)을 따른다.
+과거 운영 이력은 이 폴더에서 주제 키워드로 검색한다. 날짜 기준 전량 읽기는 하지 않는다.
